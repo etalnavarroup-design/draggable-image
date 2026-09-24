@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Draggable Image</title>
+<style>
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+  }
+
+  #dragArea {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+    overflow: hidden;
+    background: #fff;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  #dragImage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    touch-action: none;
+    will-change: transform;
+  }
+
+  #dragImage.dragging {
+    cursor: grabbing;
+  }
+</style>
+</head>
+<body>
+
+<div id="dragArea">
+  <!-- You can also change the URL directly here if you prefer. -->
+  <img id="dragImage"
+       src="https://placehold.co/300x300/png?text=Your+Image"
+       alt="Draggable image"
+       draggable="false">
+</div>
+
+<script>
+  // ==========================================================
+  // CHANGE THIS ONE URL TO USE YOUR OWN IMAGE
+  // ==========================================================
+  const IMAGE_URL = "https://ibb.co/spkB6xCn";
+
+  const area = document.getElementById("dragArea");
+  const image = document.getElementById("dragImage");
+
+  image.src = IMAGE_URL;
+
+  let dragging = false;
+  let startPointerX = 0;
+  let startPointerY = 0;
+  let startX = 0;
+  let startY = 0;
+  let x = 0;
+  let y = 0;
+
+  function updatePosition() {
+    image.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  }
+
+  function clampPosition() {
+    const maxX = Math.max(0, area.clientWidth - image.offsetWidth);
+    const maxY = Math.max(0, area.clientHeight - image.offsetHeight);
+
+    x = Math.max(0, Math.min(x, maxX));
+    y = Math.max(0, Math.min(y, maxY));
+  }
+
+  function centerImage() {
+    x = Math.max(0, (area.clientWidth - image.offsetWidth) / 2);
+    y = Math.max(0, (area.clientHeight - image.offsetHeight) / 2);
+    updatePosition();
+  }
+
+  image.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+
+    dragging = true;
+    image.classList.add("dragging");
+
+    startPointerX = event.clientX;
+    startPointerY = event.clientY;
+    startX = x;
+    startY = y;
+
+    image.setPointerCapture(event.pointerId);
+  });
+
+  image.addEventListener("pointermove", (event) => {
+    if (!dragging) return;
+
+    event.preventDefault();
+
+    x = startX + (event.clientX - startPointerX);
+    y = startY + (event.clientY - startPointerY);
+
+    clampPosition();
+    updatePosition();
+  });
+
+  function stopDragging(event) {
+    dragging = false;
+    image.classList.remove("dragging");
+
+    if (
+      event &&
+      image.hasPointerCapture &&
+      image.hasPointerCapture(event.pointerId)
+    ) {
+      image.releasePointerCapture(event.pointerId);
+    }
+  }
+
+  image.addEventListener("pointerup", stopDragging);
+  image.addEventListener("pointercancel", stopDragging);
+
+  image.addEventListener("dragstart", (event) => {
+    event.preventDefault();
+  });
+
+  window.addEventListener("resize", () => {
+    clampPosition();
+    updatePosition();
+  });
+
+  if (image.complete) {
+    centerImage();
+  } else {
+    image.addEventListener("load", centerImage);
+  }
+</script>
+
+</body>
+</html>
