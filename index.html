@@ -3,118 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Interactive Draggable Stickers</title>
+    <title>Aesthetic Cake Decoration Sticker Pack</title>
     <style>
-        /* Transparent page layout for Canva */
         html, body {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: transparent;
+            background-color: transparent !important;
             -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Container filling the embed area */
-        #dragArea {
+        #sticker-board {
             position: relative;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
             touch-action: none;
-            background-color: transparent;
+            background-color: transparent !important;
         }
 
-        /* Styling for all draggable items */
-        .draggable-item {
+        /* Enlarged Sticker Dimensions & Drop Shadow Aesthetics */
+        .sticker {
             position: absolute;
             top: 0;
             left: 0;
-            width: 65px;  /* Optimal size for desktop */
-            height: 65px;
+            width: 72px;
+            height: 72px;
             object-fit: contain;
             cursor: grab;
             touch-action: none;
-            
-            /* Prevent image selection/ghost dragging */
+            z-index: 10;
+            filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.18));
+            transition: filter 0.15s ease;
             user-select: none;
             -webkit-user-select: none;
             -webkit-user-drag: none;
-            
             will-change: transform;
-            transform: translate3d(0, 0, 0);
         }
 
-        /* Active dragging state */
-        .draggable-item.is-dragging {
-            cursor: grabbing;
-            z-index: 9999; /* Brings current sticker to front when dragging */
+        .sticker:hover {
+            filter: drop-shadow(0px 8px 16px rgba(255, 182, 193, 0.5)) scale(1.08);
         }
 
-        /* Mobile screen adjustments */
+        .sticker.is-dragging {
+            cursor: grabbing !important;
+            z-index: 9999 !important;
+            filter: drop-shadow(0px 12px 24px rgba(0, 0, 0, 0.3)) scale(1.15) !important;
+        }
+
+        /* Mobile Adjustments for Enlarged Touch Targets */
         @media (max-width: 600px) {
-            .draggable-item {
-                width: 48px;
-                height: 48px;
+            .sticker {
+                width: 56px;
+                height: 56px;
             }
         }
     </style>
 </head>
 <body>
 
-    <div id="dragArea">
-        <!-- 40 sticker elements will be generated here -->
-    </div>
+    <div id="sticker-board"></div>
 
     <script>
-        // =========================================================================
-        // YOUR 40 DIRECT IMGBB STICKER LINKS
-        // =========================================================================
-        const STICKER_URLS = [
-            "https://i.ibb.co/Fb116Wy5/image.png",
-            "https://i.ibb.co/Gvmq6ZpM/image.png",
-            "https://i.ibb.co/Sg1JkcY/image.png",
-            "https://i.ibb.co/Rp6v3RgV/image.png",
-            "https://i.ibb.co/DDXCXPc8/image.png",
-            "https://i.ibb.co/R4bZntH2/image.png",
-            "https://i.ibb.co/rGSLHrq4/image.png",
-            "https://i.ibb.co/XrY6wptK/image.png",
-            "https://i.ibb.co/JFyC5dqC/image.png",
-            "https://i.ibb.co/xSFh64Y4/image.png",
-            "https://i.ibb.co/20vXcJPc/image.png",
-            "https://i.ibb.co/7xh95KhL/image.png",
-            "https://i.ibb.co/whBpb319/image.png",
-            "https://i.ibb.co/r29361ht/image.png",
-            "https://i.ibb.co/G4KRyCTL/image.png",
-            "https://i.ibb.co/xt1YsYxr/image.png",
-            "https://i.ibb.co/vxbyxcnt/image.png",
-            "https://i.ibb.co/HD53s8zc/image.png",
-            "https://i.ibb.co/8D0PJNgc/image.png",
-            "https://i.ibb.co/k2KDRPjL/image.png",
-            "https://i.ibb.co/xK9bg3bL/image.png",
-            "https://i.ibb.co/67kj024q/image.png",
-            "https://i.ibb.co/GfQ5FG45/image.png",
-            "https://i.ibb.co/LXHxVCJd/image.png",
-            "https://i.ibb.co/ymT2TD2H/image.png",
-            "https://i.ibb.co/6Rp6QgpF/image.png",
-            "https://i.ibb.co/vxkdnhCg/image.png",
-            "https://i.ibb.co/r2RsZKBL/image.png",
-            "https://i.ibb.co/NntT3M9G/image.png",
-            "https://i.ibb.co/LD6drcsD/image.png",
-            "https://i.ibb.co/GQtKF3PN/image.png",
-            "https://i.ibb.co/7dJwxhSr/image.png",
-            "https://i.ibb.co/M5VZmXtc/image.png",
-            "https://i.ibb.co/QVKNvQc/image.png",
-            "https://i.ibb.co/fz5WFQBC/image.png",
-            "https://i.ibb.co/b5FGnNHs/image.png",
-            "https://i.ibb.co/DP91Cjxz/image.png",
-            "https://i.ibb.co/B5bt8cx6/image.png",
-            "https://i.ibb.co/XxDQJCQJ/image.png",
-            "https://i.ibb.co/F4WSn8QP/image.png"
+        const svgToDataUrl = (svgStr) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgStr);
+
+        // Vector SVG Stickers (Retained & Expanded)
+        const RAW_SVG_STICKERS = [
+            // 11 Months Banner Charm
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <rect x="5" y="28" width="90" height="44" rx="22" fill="#FFB6C1" stroke="#FFFFFF" stroke-width="5"/>
+                <rect x="9" y="32" width="82" height="36" rx="18" fill="#FFC0CB" stroke="#FFFFFF" stroke-width="2"/>
+                <text x="50" y="55" font-family="'Comic Sans MS', sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">11 Months 💕</text>
+            </svg>`,
+            
+            // Candles
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <rect x="42" y="28" width="16" height="56" rx="6" fill="#FFB6C1" stroke="#FFFFFF" stroke-width="4"/>
+                <path d="M 50,8 C 40,22 60,22 50,8 Z" fill="#FFB703" stroke="#FFFFFF" stroke-width="2"/>
+                <circle cx="50" cy="18" r="3" fill="#FFF"/>
+            </svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <rect x="42" y="28" width="16" height="56" rx="6" fill="#B5E2FA" stroke="#FFFFFF" stroke-width="4"/>
+                <path d="M 50,8 C 40,22 60,22 50,8 Z" fill="#FFB703" stroke="#FFFFFF" stroke-width="2"/>
+            </svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <rect x="42" y="28" width="16" height="56" rx="6" fill="#E2AFF0" stroke="#FFFFFF" stroke-width="4"/>
+                <path d="M 50,8 C 40,22 60,22 50,8 Z" fill="#FFB703" stroke="#FFFFFF" stroke-width="2"/>
+            </svg>`,
+
+            // Cherries
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <circle cx="36" cy="66" r="20" fill="#C9184A" stroke="#FFFFFF" stroke-width="4"/>
+                <circle cx="68" cy="58" r="20" fill="#C9184A" stroke="#FFFFFF" stroke-width="4"/>
+                <path d="M 36,48 Q 50,16 66,22 Q 50,16 68,38" fill="none" stroke="#70E000" stroke-width="5" stroke-linecap="round"/>
+                <path d="M 36,48 Q 50,16 66,22 Q 50,16 68,38" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+            </svg>`,
+
+            // Stars
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <polygon points="50,10 63,38 92,42 70,62 76,90 50,75 24,90 30,62 8,42 37,38" fill="#FFEA00" stroke="#FFFFFF" stroke-width="5"/>
+            </svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <polygon points="50,10 63,38 92,42 70,62 76,90 50,75 24,90 30,62 8,42 37,38" fill="#E2AFF0" stroke="#FFFFFF" stroke-width="5"/>
+            </svg>`,
+
+            // Whipped Cream Swirls
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <path d="M 18,74 Q 50,16 82,74 Q 50,90 18,74 Z" fill="#FFFFFF" stroke="#FFE5EC" stroke-width="4"/>
+                <path d="M 32,68 Q 50,28 68,68" fill="none" stroke="#FFE5EC" stroke-width="4" stroke-linecap="round"/>
+            </svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <path d="M 18,74 Q 50,16 82,74 Q 50,90 18,74 Z" fill="#FFFFFF" stroke="#FFD6E0" stroke-width="4"/>
+                <path d="M 32,68 Q 50,28 68,68" fill="none" stroke="#FFD6E0" stroke-width="4" stroke-linecap="round"/>
+            </svg>`,
+
+            // Macarons
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <rect x="15" y="26" width="70" height="22" rx="11" fill="#FFB6C1" stroke="#FFFFFF" stroke-width="4"/>
+                <rect x="15" y="52" width="70" height="22" rx="11" fill="#FFB6C1" stroke="#FFFFFF" stroke-width="4"/>
+                <rect x="20" y="44" width="60" height="12" rx="4" fill="#FFFFFF"/>
+            </svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <rect x="15" y="26" width="70" height="22" rx="11" fill="#B5E2FA" stroke="#FFFFFF" stroke-width="4"/>
+                <rect x="15" y="52" width="70" height="22" rx="11" fill="#B5E2FA" stroke="#FFFFFF" stroke-width="4"/>
+                <rect x="20" y="44" width="60" height="12" rx="4" fill="#FFFFFF"/>
+            </svg>`,
+
+            // Ribbon Bows
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <path d="M 50,50 L 16,26 Q 8,50 16,74 Z" fill="#FF70A6" stroke="#FFFFFF" stroke-width="4"/>
+                <path d="M 50,50 L 84,26 Q 92,50 84,74 Z" fill="#FF70A6" stroke="#FFFFFF" stroke-width="4"/>
+                <circle cx="50" cy="50" r="10" fill="#FF477E" stroke="#FFFFFF" stroke-width="4"/>
+            </svg>`,
+
+            // Pearls & Sprinkles
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="26" fill="#FFFFFF" stroke="#E9ECEF" stroke-width="4"/>
+                <circle cx="40" cy="40" r="8" fill="#FFFFFF"/>
+            </svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <rect x="20" y="40" width="60" height="20" rx="10" fill="#FF99C8" stroke="#FFFFFF" stroke-width="4"/>
+            </svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <rect x="20" y="40" width="60" height="20" rx="10" fill="#FCF6BD" stroke="#FFFFFF" stroke-width="4"/>
+            </svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <rect x="20" y="40" width="60" height="20" rx="10" fill="#D0F4DE" stroke="#FFFFFF" stroke-width="4"/>
+            </svg>`,
+
+            // Mini Cupcake
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <path d="M 28,50 L 35,85 L 65,85 L 72,50 Z" fill="#FFCAD4" stroke="#FFFFFF" stroke-width="4"/>
+                <path d="M 20,52 C 20,25 80,25 80,52 Z" fill="#FFFFFF" stroke="#FFCAD4" stroke-width="4"/>
+                <circle cx="50" cy="24" r="10" fill="#FF4D6D" stroke="#FFFFFF" stroke-width="3"/>
+            </svg>`,
+
+            // Cookies & Chocolates
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="34" fill="#DDB892" stroke="#FFFFFF" stroke-width="5"/>
+                <circle cx="38" cy="38" r="5" fill="#7F4F24"/>
+                <circle cx="64" cy="44" r="5" fill="#7F4F24"/>
+                <circle cx="48" cy="66" r="5" fill="#7F4F24"/>
+            </svg>`,
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <rect x="20" y="20" width="60" height="60" rx="8" fill="#6C584C" stroke="#FFFFFF" stroke-width="5"/>
+                <line x1="50" y1="20" x2="50" y2="80" stroke="#FFFFFF" stroke-width="3"/>
+                <line x1="20" y1="50" x2="80" y2="50" stroke="#FFFFFF" stroke-width="3"/>
+            </svg>`,
+
+            // Frosting Drips
+            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <path d="M 10,20 L 90,20 Q 90,50 75,50 Q 60,50 60,70 Q 60,85 45,85 Q 30,85 30,60 Q 30,40 10,40 Z" fill="#FFB6C1" stroke="#FFFFFF" stroke-width="4"/>
+            </svg>`
         ];
 
-        const dragArea = document.getElementById('dragArea');
+        // Convert Emoji string into a white-bordered sticker SVG
+        function createEmojiStickerUrl(emoji) {
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <text x="50" y="70" font-size="64" text-anchor="middle" filter="drop-shadow(0px 0px 4px #FFFFFF) drop-shadow(0px 0px 8px #FFFFFF)">${emoji}</text>
+            </svg>`;
+            return svgToDataUrl(svg);
+        }
+
+        // Target Emoji Categories
+        const FLOWER_EMOJIS = ['💐', '🌸', '💮', '🌹', '🌺', '🌻', '🌼', '🌷', '🥀', '🪷'];
+        const HEART_EMOJIS = ['💖', '💕', '💗', '💓', '💘', '💝', '❤️', '🧡', '💛', '💚', '💙', '💜', '🤍', '🤎'];
+        const STRAWBERRY_EMOJIS = ['🍓', '🍓', '🍓', '🍓'];
+        const CUTE_DESSERT_EMOJIS = ['🎂', '🧁', '🍰', '🍬', '🍭', '🍫', '🍩', '🍪', '🎀', '✨', '💫', '🌟', '🧸', '🪞', '👑', '🦄', '🐱', '🐣'];
+
+        // Combine all SVG and Emoji stickers (60+ total items)
+        const ALL_STICKER_URLS = [
+            ...RAW_SVG_STICKERS.map(svg => svgToDataUrl(svg)),
+            ...FLOWER_EMOJIS.map(e => createEmojiStickerUrl(e)),
+            ...HEART_EMOJIS.map(e => createEmojiStickerUrl(e)),
+            ...STRAWBERRY_EMOJIS.map(e => createEmojiStickerUrl(e)),
+            ...CUTE_DESSERT_EMOJIS.map(e => createEmojiStickerUrl(e))
+        ];
+
+        const board = document.getElementById('sticker-board');
 
         let activeElement = null;
         let startPointerX = 0;
@@ -122,36 +213,30 @@
         let startElemX = 0;
         let startElemY = 0;
 
-        // Auto-calculates grid spacing to balance all 40 stickers
-        function createStickers() {
-            dragArea.innerHTML = ''; 
+        function initializeBoard() {
+            board.innerHTML = '';
 
-            const total = STICKER_URLS.length;
-            const areaWidth = dragArea.clientWidth || window.innerWidth;
-            const areaHeight = dragArea.clientHeight || window.innerHeight;
+            const total = ALL_STICKER_URLS.length;
+            const areaWidth = board.clientWidth || window.innerWidth;
+            const areaHeight = board.clientHeight || window.innerHeight;
 
             const cols = Math.ceil(Math.sqrt(total * (areaWidth / areaHeight)));
             const rows = Math.ceil(total / cols);
             const cellWidth = areaWidth / cols;
             const cellHeight = areaHeight / rows;
 
-            STICKER_URLS.forEach((url, index) => {
+            ALL_STICKER_URLS.forEach((url, index) => {
                 const img = document.createElement('img');
                 img.src = url;
-                img.alt = "Sticker " + (index + 1);
-                img.classList.add('draggable-item');
+                img.alt = "Decoration Sticker " + (index + 1);
+                img.classList.add('sticker');
                 img.setAttribute('draggable', 'false');
-
-                // Fallback icon if link fails
-                img.onerror = function() {
-                    this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ffb6c1'/%3E%3C/svg%3E";
-                };
 
                 const col = index % cols;
                 const row = Math.floor(index / cols);
                 
-                const itemWidth = window.innerWidth <= 600 ? 48 : 65;
-                const itemHeight = window.innerWidth <= 600 ? 48 : 65;
+                const itemWidth = window.innerWidth <= 600 ? 56 : 72;
+                const itemHeight = window.innerWidth <= 600 ? 56 : 72;
 
                 const initialX = Math.max(5, Math.min((col * cellWidth) + (cellWidth / 2) - (itemWidth / 2), areaWidth - itemWidth));
                 const initialY = Math.max(5, Math.min((row * cellHeight) + (cellHeight / 2) - (itemHeight / 2), areaHeight - itemHeight));
@@ -162,7 +247,7 @@
 
                 img.addEventListener('pointerdown', onPointerDown);
 
-                dragArea.appendChild(img);
+                board.appendChild(img);
             });
         }
 
@@ -193,15 +278,14 @@
             let newX = startElemX + deltaX;
             let newY = startElemY + deltaY;
 
-            const areaWidth = dragArea.clientWidth;
-            const areaHeight = dragArea.clientHeight;
+            const areaWidth = board.clientWidth;
+            const areaHeight = board.clientHeight;
             const elemWidth = activeElement.offsetWidth;
             const elemHeight = activeElement.offsetHeight;
 
             const maxX = areaWidth - elemWidth;
             const maxY = areaHeight - elemHeight;
 
-            // Clamping boundaries so items stay inside area
             newX = Math.max(0, Math.min(newX, maxX));
             newY = Math.max(0, Math.min(newY, maxY));
 
@@ -226,29 +310,10 @@
             activeElement = null;
         }
 
-        dragArea.addEventListener('dragstart', (e) => e.preventDefault());
+        board.addEventListener('dragstart', (e) => e.preventDefault());
 
-        window.addEventListener('resize', () => {
-            const areaWidth = dragArea.clientWidth;
-            const areaHeight = dragArea.clientHeight;
-
-            document.querySelectorAll('.draggable-item').forEach(img => {
-                let x = parseFloat(img.dataset.x) || 0;
-                let y = parseFloat(img.dataset.y) || 0;
-
-                const maxX = areaWidth - img.offsetWidth;
-                const maxY = areaHeight - img.offsetHeight;
-
-                x = Math.max(0, Math.min(x, maxX));
-                y = Math.max(0, Math.min(y, maxY));
-
-                img.dataset.x = x;
-                img.dataset.y = y;
-                img.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-            });
-        });
-
-        window.addEventListener('DOMContentLoaded', createStickers);
+        window.addEventListener('resize', initializeBoard);
+        window.addEventListener('DOMContentLoaded', initializeBoard);
     </script>
 </body>
 </html>
