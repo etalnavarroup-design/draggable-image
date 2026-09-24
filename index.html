@@ -1,160 +1,254 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Draggable Image</title>
-<style>
-  * { box-sizing: border-box; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Interactive Draggable Stickers</title>
+    <style>
+        /* Transparent page layout for Canva */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: transparent;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-  html, body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #fff;
-  }
+        /* Container filling the embed area */
+        #dragArea {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            touch-action: none;
+            background-color: transparent;
+        }
 
-  body {
-    font-family: Arial, sans-serif;
-  }
+        /* Styling for all draggable items */
+        .draggable-item {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 65px;  /* Optimal size for desktop */
+            height: 65px;
+            object-fit: contain;
+            cursor: grab;
+            touch-action: none;
+            
+            /* Prevent image selection/ghost dragging */
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-user-drag: none;
+            
+            will-change: transform;
+            transform: translate3d(0, 0, 0);
+        }
 
-  #dragArea {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    min-height: 300px;
-    overflow: hidden;
-    background: #fff;
-    touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
-  }
+        /* Active dragging state */
+        .draggable-item.is-dragging {
+            cursor: grabbing;
+            z-index: 9999; /* Brings current sticker to front when dragging */
+        }
 
-  #dragImage {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 150px;
-    height: 150px;
-    object-fit: contain;
-    cursor: grab;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-user-drag: none;
-    touch-action: none;
-    will-change: transform;
-  }
-
-  #dragImage.dragging {
-    cursor: grabbing;
-  }
-</style>
+        /* Mobile screen adjustments */
+        @media (max-width: 600px) {
+            .draggable-item {
+                width: 48px;
+                height: 48px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<div id="dragArea">
-  <!-- You can also change the URL directly here if you prefer. -->
-  <img id="dragImage"
-       src="https://placehold.co/300x300/png?text=Your+Image"
-       alt="Draggable image"
-       draggable="false">
-</div>
+    <div id="dragArea">
+        <!-- 40 sticker elements will be generated here -->
+    </div>
 
-<script>
-  // ==========================================================
-  // CHANGE THIS ONE URL TO USE YOUR OWN IMAGE
-  // ==========================================================
-  const IMAGE_URL = "https://ibb.co/spkB6xCn";
+    <script>
+        // =========================================================================
+        // YOUR 40 DIRECT IMGBB STICKER LINKS
+        // =========================================================================
+        const STICKER_URLS = [
+            "https://i.ibb.co/Fb116Wy5/image.png",
+            "https://i.ibb.co/Gvmq6ZpM/image.png",
+            "https://i.ibb.co/Sg1JkcY/image.png",
+            "https://i.ibb.co/Rp6v3RgV/image.png",
+            "https://i.ibb.co/DDXCXPc8/image.png",
+            "https://i.ibb.co/R4bZntH2/image.png",
+            "https://i.ibb.co/rGSLHrq4/image.png",
+            "https://i.ibb.co/XrY6wptK/image.png",
+            "https://i.ibb.co/JFyC5dqC/image.png",
+            "https://i.ibb.co/xSFh64Y4/image.png",
+            "https://i.ibb.co/20vXcJPc/image.png",
+            "https://i.ibb.co/7xh95KhL/image.png",
+            "https://i.ibb.co/whBpb319/image.png",
+            "https://i.ibb.co/r29361ht/image.png",
+            "https://i.ibb.co/G4KRyCTL/image.png",
+            "https://i.ibb.co/xt1YsYxr/image.png",
+            "https://i.ibb.co/vxbyxcnt/image.png",
+            "https://i.ibb.co/HD53s8zc/image.png",
+            "https://i.ibb.co/8D0PJNgc/image.png",
+            "https://i.ibb.co/k2KDRPjL/image.png",
+            "https://i.ibb.co/xK9bg3bL/image.png",
+            "https://i.ibb.co/67kj024q/image.png",
+            "https://i.ibb.co/GfQ5FG45/image.png",
+            "https://i.ibb.co/LXHxVCJd/image.png",
+            "https://i.ibb.co/ymT2TD2H/image.png",
+            "https://i.ibb.co/6Rp6QgpF/image.png",
+            "https://i.ibb.co/vxkdnhCg/image.png",
+            "https://i.ibb.co/r2RsZKBL/image.png",
+            "https://i.ibb.co/NntT3M9G/image.png",
+            "https://i.ibb.co/LD6drcsD/image.png",
+            "https://i.ibb.co/GQtKF3PN/image.png",
+            "https://i.ibb.co/7dJwxhSr/image.png",
+            "https://i.ibb.co/M5VZmXtc/image.png",
+            "https://i.ibb.co/QVKNvQc/image.png",
+            "https://i.ibb.co/fz5WFQBC/image.png",
+            "https://i.ibb.co/b5FGnNHs/image.png",
+            "https://i.ibb.co/DP91Cjxz/image.png",
+            "https://i.ibb.co/B5bt8cx6/image.png",
+            "https://i.ibb.co/XxDQJCQJ/image.png",
+            "https://i.ibb.co/F4WSn8QP/image.png"
+        ];
 
-  const area = document.getElementById("dragArea");
-  const image = document.getElementById("dragImage");
+        const dragArea = document.getElementById('dragArea');
 
-  image.src = IMAGE_URL;
+        let activeElement = null;
+        let startPointerX = 0;
+        let startPointerY = 0;
+        let startElemX = 0;
+        let startElemY = 0;
 
-  let dragging = false;
-  let startPointerX = 0;
-  let startPointerY = 0;
-  let startX = 0;
-  let startY = 0;
-  let x = 0;
-  let y = 0;
+        // Auto-calculates grid spacing to balance all 40 stickers
+        function createStickers() {
+            dragArea.innerHTML = ''; 
 
-  function updatePosition() {
-    image.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-  }
+            const total = STICKER_URLS.length;
+            const areaWidth = dragArea.clientWidth || window.innerWidth;
+            const areaHeight = dragArea.clientHeight || window.innerHeight;
 
-  function clampPosition() {
-    const maxX = Math.max(0, area.clientWidth - image.offsetWidth);
-    const maxY = Math.max(0, area.clientHeight - image.offsetHeight);
+            const cols = Math.ceil(Math.sqrt(total * (areaWidth / areaHeight)));
+            const rows = Math.ceil(total / cols);
+            const cellWidth = areaWidth / cols;
+            const cellHeight = areaHeight / rows;
 
-    x = Math.max(0, Math.min(x, maxX));
-    y = Math.max(0, Math.min(y, maxY));
-  }
+            STICKER_URLS.forEach((url, index) => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = "Sticker " + (index + 1);
+                img.classList.add('draggable-item');
+                img.setAttribute('draggable', 'false');
 
-  function centerImage() {
-    x = Math.max(0, (area.clientWidth - image.offsetWidth) / 2);
-    y = Math.max(0, (area.clientHeight - image.offsetHeight) / 2);
-    updatePosition();
-  }
+                // Fallback icon if link fails
+                img.onerror = function() {
+                    this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ffb6c1'/%3E%3C/svg%3E";
+                };
 
-  image.addEventListener("pointerdown", (event) => {
-    event.preventDefault();
+                const col = index % cols;
+                const row = Math.floor(index / cols);
+                
+                const itemWidth = window.innerWidth <= 600 ? 48 : 65;
+                const itemHeight = window.innerWidth <= 600 ? 48 : 65;
 
-    dragging = true;
-    image.classList.add("dragging");
+                const initialX = Math.max(5, Math.min((col * cellWidth) + (cellWidth / 2) - (itemWidth / 2), areaWidth - itemWidth));
+                const initialY = Math.max(5, Math.min((row * cellHeight) + (cellHeight / 2) - (itemHeight / 2), areaHeight - itemHeight));
 
-    startPointerX = event.clientX;
-    startPointerY = event.clientY;
-    startX = x;
-    startY = y;
+                img.dataset.x = initialX;
+                img.dataset.y = initialY;
+                img.style.transform = `translate3d(${initialX}px, ${initialY}px, 0)`;
 
-    image.setPointerCapture(event.pointerId);
-  });
+                img.addEventListener('pointerdown', onPointerDown);
 
-  image.addEventListener("pointermove", (event) => {
-    if (!dragging) return;
+                dragArea.appendChild(img);
+            });
+        }
 
-    event.preventDefault();
+        function onPointerDown(e) {
+            e.preventDefault();
+            activeElement = e.currentTarget;
 
-    x = startX + (event.clientX - startPointerX);
-    y = startY + (event.clientY - startPointerY);
+            activeElement.setPointerCapture(e.pointerId);
+            activeElement.classList.add('is-dragging');
 
-    clampPosition();
-    updatePosition();
-  });
+            startPointerX = e.clientX;
+            startPointerY = e.clientY;
 
-  function stopDragging(event) {
-    dragging = false;
-    image.classList.remove("dragging");
+            startElemX = parseFloat(activeElement.dataset.x) || 0;
+            startElemY = parseFloat(activeElement.dataset.y) || 0;
 
-    if (
-      event &&
-      image.hasPointerCapture &&
-      image.hasPointerCapture(event.pointerId)
-    ) {
-      image.releasePointerCapture(event.pointerId);
-    }
-  }
+            activeElement.addEventListener('pointermove', onPointerMove);
+            activeElement.addEventListener('pointerup', onPointerUp);
+            activeElement.addEventListener('pointercancel', onPointerUp);
+        }
 
-  image.addEventListener("pointerup", stopDragging);
-  image.addEventListener("pointercancel", stopDragging);
+        function onPointerMove(e) {
+            if (!activeElement) return;
 
-  image.addEventListener("dragstart", (event) => {
-    event.preventDefault();
-  });
+            const deltaX = e.clientX - startPointerX;
+            const deltaY = e.clientY - startPointerY;
 
-  window.addEventListener("resize", () => {
-    clampPosition();
-    updatePosition();
-  });
+            let newX = startElemX + deltaX;
+            let newY = startElemY + deltaY;
 
-  if (image.complete) {
-    centerImage();
-  } else {
-    image.addEventListener("load", centerImage);
-  }
-</script>
+            const areaWidth = dragArea.clientWidth;
+            const areaHeight = dragArea.clientHeight;
+            const elemWidth = activeElement.offsetWidth;
+            const elemHeight = activeElement.offsetHeight;
 
+            const maxX = areaWidth - elemWidth;
+            const maxY = areaHeight - elemHeight;
+
+            // Clamping boundaries so items stay inside area
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
+
+            activeElement.dataset.x = newX;
+            activeElement.dataset.y = newY;
+            activeElement.style.transform = `translate3d(${newX}px, ${newY}px, 0)`;
+        }
+
+        function onPointerUp(e) {
+            if (!activeElement) return;
+
+            activeElement.classList.remove('is-dragging');
+            
+            activeElement.removeEventListener('pointermove', onPointerMove);
+            activeElement.removeEventListener('pointerup', onPointerUp);
+            activeElement.removeEventListener('pointercancel', onPointerUp);
+
+            try {
+                activeElement.releasePointerCapture(e.pointerId);
+            } catch (err) {}
+
+            activeElement = null;
+        }
+
+        dragArea.addEventListener('dragstart', (e) => e.preventDefault());
+
+        window.addEventListener('resize', () => {
+            const areaWidth = dragArea.clientWidth;
+            const areaHeight = dragArea.clientHeight;
+
+            document.querySelectorAll('.draggable-item').forEach(img => {
+                let x = parseFloat(img.dataset.x) || 0;
+                let y = parseFloat(img.dataset.y) || 0;
+
+                const maxX = areaWidth - img.offsetWidth;
+                const maxY = areaHeight - img.offsetHeight;
+
+                x = Math.max(0, Math.min(x, maxX));
+                y = Math.max(0, Math.min(y, maxY));
+
+                img.dataset.x = x;
+                img.dataset.y = y;
+                img.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+            });
+        });
+
+        window.addEventListener('DOMContentLoaded', createStickers);
+    </script>
 </body>
 </html>
